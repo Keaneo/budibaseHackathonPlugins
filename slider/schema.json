@@ -8,9 +8,24 @@
     "icon": "Text",
     "settings": [
       {
-        "type": "text",
-        "key": "text",
-        "label": "Text"
+        "type": "number",
+        "key": "value",
+        "label": "Value"
+      },
+      {
+        "type": "number",
+        "key": "min",
+        "label": "Minimum"
+      },
+      {
+        "type": "number",
+        "key": "max",
+        "label": "Maximum"
+      },
+      {
+        "type": "number",
+        "key": "step",
+        "label": "Step"
       }
     ]
   }

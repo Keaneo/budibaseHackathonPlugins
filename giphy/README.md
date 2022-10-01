@@ -2,7 +2,7 @@
 This is a readme for your new Budibase plugin.
 
 # Description
-Giphy Embedding
+Giphy Embedding Component
 
 Find out more about [Budibase](https://github.com/Budibase/budibase).
 
@@ -17,3 +17,4 @@ You can also re-build everytime you make a change to your plugin with the comman
 ```
 budi plugins --watch
 ```
+

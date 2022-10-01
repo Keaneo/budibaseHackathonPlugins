@@ -1,20 +1,23 @@
-import resolve from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
+import resolve from "@rollup/plugin-node-resolve"
+import svelte from "rollup-plugin-svelte"
 import { terser } from "rollup-plugin-terser"
+import postcss from "rollup-plugin-postcss"
+import svg from "rollup-plugin-svg"
 import json from "rollup-plugin-json"
+import nodePolyfills from "rollup-plugin-polyfill-node"
 import copy from "rollup-plugin-copy2"
-import typescript from "@rollup/plugin-typescript"
 import tar from "tar"
 import fs from "fs"
 import pkg from "./package.json"
 import crypto from "crypto"
 
-const iconFile = "icon.svg"
-const iconExists = fs.existsSync(iconFile)
-const assets = ["schema.json", "package.json"]
-if (iconExists) {
-  assets.push(iconFile)
-}
+const ignoredWarnings = [
+  "unused-export-let",
+  "css-unused-selector",
+  "module-script-reactive-declaration",
+  "a11y-no-onchange",
+]
 
 // Custom plugin to clean the dist folder before building
 const clean = () => ({
@@ -57,48 +60,52 @@ const bundle = () => ({
   async writeBundle() {
     const bundleName = `${pkg.name}-${pkg.version}.tar.gz`
     return tar
-      .c({ gzip: true, cwd: "dist" }, [...assets, "plugin.min.js"])
-      .pipe(fs.createWriteStream(`dist/${bundleName}`))
+        .c({ gzip: true, cwd: "dist" }, [
+          "plugin.min.js",
+          "schema.json",
+          "package.json",
+        ])
+        .pipe(fs.createWriteStream(`dist/${bundleName}`))
   },
 })
 
 export default {
-  input: "src/index.ts",
+  input: "index.js",
   output: {
-    sourcemap: false,
-    format: "cjs",
+    sourcemap: process.env.ROLLUP_WATCH ? "inline" : false,
+    format: "iife",
     file: "dist/plugin.min.js",
-    inlineDynamicImports: true,
-    exports: "default",
+    name: "plugin",
+    globals: {
+      svelte: "svelte",
+      "svelte/internal": "svelte_internal",
+    },
   },
+  external: ["svelte", "svelte/internal"],
   plugins: [
     clean(),
+    svelte({
+      emitCss: true,
+      onwarn: (warning, handler) => {
+        // Ignore some warnings
+        if (!ignoredWarnings.includes(warning.code)) {
+          handler(warning)
+        }
+      },
+    }),
+    postcss(),
+    commonjs(),
+    nodePolyfills(),
     resolve({
       preferBuiltins: true,
-      browser: false,
+      browser: true,
+      skip: ["svelte", "svelte/internal"],
     }),
-    typescript({
-      compilerOptions: {
-        target: "es6",
-        module: "esnext",
-        lib: ["es2020"],
-        allowJs: true,
-        strict: true,
-        noImplicitAny: true,
-        esModuleInterop: true,
-        resolveJsonModule: true,
-        types: ["node"],
-        skipLibCheck: true,
-        moduleResolution: "node",
-      },
-      include: ["./src/**/*"],
-      exclude: ["node_modules", "dist", "**/*.spec.ts", "**/*.spec.js"],
-    }),
-    commonjs(),
+    svg(),
     json(),
     terser(),
     copy({
-      assets,
+      assets: ["schema.json", "package.json"],
     }),
     hash(),
     bundle(),
