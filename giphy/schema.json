@@ -9,8 +9,8 @@
     "settings": [
       {
         "type": "text",
-        "key": "text",
-        "label": "Text"
+        "key": "searchGif",
+        "label": "Gif Search"
       }
     ]
   }

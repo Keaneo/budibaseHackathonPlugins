@@ -1,6 +1,6 @@
 <script>
   import { getContext } from "svelte"
-    import { slide } from "svelte/types/runtime/transition";
+  import { slide } from "svelte/types/runtime/transition";
 
   export let sliderVal = 0
   export let min
